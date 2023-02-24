@@ -9,6 +9,7 @@ img = "bg.png"
 def handle_captcha(route: Route) -> None:
     response = route.fetch()
     if response.status == 200:
+        print("拦截到刷新验证码请求")
         buffer = response.body()
         # 下载指定规则url的验证码图片
         if "index=1" in response.url:
@@ -16,9 +17,34 @@ def handle_captcha(route: Route) -> None:
                 f.write(buffer)
     route.continue_()
 
+def dragbox_location():
+    for i in range(5):
+        dragbox_bounding = page.frame_locator("#tcaptcha_iframe").locator("#tcaptcha_drag_thumb").bounding_box()
+        if dragbox_bounding is not None and dragbox_bounding["x"]>20:
+            return dragbox_bounding
+    return None
+
+def drag_to_breach():
+    drag_box = dragbox_location()
+    if drag_box is None:
+        return False
+    page.mouse.move(drag_box["x"] + drag_box["width"] / 2,
+                    drag_box["y"] + drag_box["height"] / 2)
+    page.mouse.down()
+    location_x = drag_box["x"]
+    for i in move_distance:
+        location_x += i
+        page.mouse.move(location_x, drag_box["y"])
+        page.wait_for_timeout(50)
+    page.mouse.up()
+    if page.get_by_text("后重试") is not None and page.get_by_text("获取验证码") is None: 
+        print("识别成功")  
+        return True
+    return False
+
 with sync_playwright() as p:
     #browser = p.chromium.launch(channel="msedge",proxy={"server": "http://{}".format(proxy)})
-    browser = p.chromium.launch(channel="msedge")
+    browser = p.chromium.launch(channel="msedge",headless=False)
     iphone_12 = p.devices["iPhone 12"]
     context = browser.new_context(
         record_video_dir="videos/",
@@ -52,28 +78,15 @@ with sync_playwright() as p:
         print("识别失败，退出程序")
     else:
         # 通过页面上验证码框的宽高，计算相对位置
-        true_distance = distance * 345 / 680
-        move_distance = get_track_list(true_distance)
+        true_distance = distance * 353 / 680
+        move_distance = get_track_list(true_distance)    
         print(f"获取到相对滑动距离{true_distance}, 模拟拖动列表{move_distance}")
-        print("开始拖动滑块...")
-        
+
         for i in range(retryTimes):
-            slider_box = page.frame_locator("#tcaptcha_iframe").locator(
-                "#tcaptcha_drag_thumb").bounding_box( )
-  
-        print(f"{slider_box}")
-        
-        page.mouse.move(slider_box["x"] + slider_box["width"] / 2,
-                        slider_box["y"] + slider_box["height"] / 2)
-        page.mouse.down()
-
-        location_x = slider_box["x"]
-        for i in move_distance:
-            location_x += i
-            page.mouse.move(location_x, slider_box["y"])
-            page.wait_for_timeout(50)
-        page.mouse.up()
-
-        page.wait_for_timeout(1000 * 10)
-
+            print(f"拖动滑块中，当前尝试轮数{i}/{retryTimes}") 
+            drag_result = drag_to_breach()
+            if drag_result:
+                break;
+    
+    print("识别结束，退出程序")
     browser.close()
