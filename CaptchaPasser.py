@@ -21,6 +21,7 @@ with sync_playwright() as p:
     browser = p.chromium.launch(channel="msedge")
     iphone_12 = p.devices["iPhone 12"]
     context = browser.new_context(
+        record_video_dir="videos/",
         **iphone_12,
     )
     page = context.new_page()
@@ -51,7 +52,7 @@ with sync_playwright() as p:
         print("识别失败，退出程序")
     else:
         # 通过页面上验证码框的宽高，计算相对位置
-        true_distance = distance * 353 / 680
+        true_distance = distance * 345 / 680
         move_distance = get_track_list(true_distance)
         print(f"获取到相对滑动距离{true_distance}, 模拟拖动列表{move_distance}")
         print("开始拖动滑块...")
@@ -59,8 +60,6 @@ with sync_playwright() as p:
         for i in range(retryTimes):
             slider_box = page.frame_locator("#tcaptcha_iframe").locator(
                 "#tcaptcha_drag_thumb").bounding_box( )
-            if slider_box is not None and slider_box["x"]> 0:
-                break;
   
         print(f"{slider_box}")
         
