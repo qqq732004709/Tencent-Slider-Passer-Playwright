@@ -1,5 +1,4 @@
 playwright
-cv2
+opencv-python
 numpy
 pandas
-math

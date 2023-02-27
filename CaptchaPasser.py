@@ -76,7 +76,7 @@ with sync_playwright() as p:
     page.goto(
         "https://wap.showstart.com/pages/passport/login/login?redirect=%252Fpages%252FmyHome%252FmyHome")
 
-    page.get_by_role("spinbutton").fill("13265104596")
+    page.get_by_role("spinbutton").fill("1322104596")
     page.get_by_text("获取验证码").click()
 
     move_distance = None
@@ -95,7 +95,7 @@ with sync_playwright() as p:
         drag_result = drag_to_breach(move_distance)
         if drag_result:
             break
-
+    page.wait_for_timeout(3000)        
     print("识别结束，退出程序")
 
     browser.close()
