@@ -1,0 +1,5 @@
+playwright
+cv2
+numpy
+pandas
+math
