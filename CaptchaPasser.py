@@ -31,8 +31,10 @@ def dragbox_location():
 
 
 def drag_to_breach(move_distance):
+    print('开始拖动滑块..')
     drag_box = dragbox_location()
     if drag_box is None:
+        print('未获取到滑块位置,识别失败')
         return False
     page.mouse.move(drag_box["x"] + drag_box["width"] / 2,
                     drag_box["y"] + drag_box["height"] / 2)
@@ -45,6 +47,7 @@ def drag_to_breach(move_distance):
     if page.get_by_text("后重试") is not None:
         print("识别成功")
         return True
+    print('识别失败')
     return False
 
 
@@ -76,12 +79,12 @@ with sync_playwright() as p:
     page.goto(
         "https://wap.showstart.com/pages/passport/login/login?redirect=%252Fpages%252FmyHome%252FmyHome")
 
-    page.get_by_role("spinbutton").fill("1322104596")
+    page.get_by_role("spinbutton").fill("14445104596")
     page.get_by_text("获取验证码").click()
 
     move_distance = None
     for i in range(retryTimes):
-        print(f"拖动滑块中，当前尝试轮数{i+1}/{retryTimes}")
+        print(f"滑块拖动逻辑开始，当前尝试轮数{i+1}/{retryTimes}")
         # 验证码刷新 重新计算距离
         if is_reflashed_img or move_distance is None:
             distance = calc_distance()
